@@ -8,6 +8,9 @@ public class TileMapEditor : Editor {
 
 	public TileMap map;
 
+    TileBrush brush;
+
+
 	public override void OnInspectorGUI()
 	{
 		EditorGUILayout.BeginVertical();
@@ -42,9 +45,16 @@ public class TileMapEditor : Editor {
         if (map.texture2D != null)
         {
             UpdateCalculations();
+            NewBrush();
         }
 
     }
+
+    void OnDisable()
+    {
+        DestroyBrush();
+    }
+
     void UpdateCalculations()
         {
             var path = AssetDatabase.GetAssetPath(map.texture2D);
@@ -59,4 +69,38 @@ public class TileMapEditor : Editor {
             map.gridSize = new Vector2((width / map.pixelsToUnits) * map.mapSize.x, (height / map.pixelsToUnits) * map.mapSize.y);
         
 	}
+
+    void CreateBrush()
+    {
+        var sprite = map.currentTileBrush;
+        if(sprite != null)
+        {
+            GameObject go = new GameObject("Brush");
+            go.transform.SetParent(map.transform);
+
+            brush = go.AddComponent<TileBrush>();
+            brush.renderer2D = go.AddComponent<SpriteRenderer>();
+
+            var pixelsToUnits = map.pixelsToUnits;
+            brush.brushSize = new Vector2(sprite.textureRect.width / pixelsToUnits, sprite.textureRect.height / pixelsToUnits);
+
+            brush.UpdateBrush(sprite);
+        }
+    }
+
+    void NewBrush()
+    {
+        if(brush == null)
+        {
+            CreateBrush();
+        }
+    }
+
+    void DestroyBrush()
+    {
+        if (brush != null)
+        {
+            DestroyImmediate(brush.gameObject);
+        }
+    }
 }

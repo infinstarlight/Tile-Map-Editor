@@ -4,13 +4,18 @@ using UnityEngine;
 
 public class TileMap : MonoBehaviour {
 
-	public Vector2 mapSize = new Vector2 (20, 10);
-	public Texture2D texture2D;
-	public Vector2 tileSize = new Vector2();
+    public Vector2 mapSize = new Vector2(20, 10);
+    public Texture2D texture2D;
+    public Vector2 tileSize = new Vector2();
     public Object[] spriteReferences;
     public Vector2 gridSize = new Vector2();
     public int pixelsToUnits = 100;
     public int tileID = 0;
+
+    public Sprite currentTileBrush
+    {
+        get {return spriteReferences[tileID] as Sprite;}
+    }
 
 	// Use this for initialization
 	void Start () {
