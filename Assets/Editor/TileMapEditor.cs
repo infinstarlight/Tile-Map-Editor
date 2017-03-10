@@ -24,8 +24,15 @@ public class TileMapEditor : Editor
 		if (map.mapSize != oldSize) {
 			UpdateCalculations ();
 		}
-
+        var oldTexture = map.texture2D;
 		map.texture2D = (Texture2D)EditorGUILayout.ObjectField ("Texture2D:", map.texture2D, typeof(Texture2D), false);
+
+        if (oldTexture != map.texture2D)
+        {
+            UpdateCalculations();
+            map.tileID = 1;
+            CreateBrush();
+        }
 
 		if (map.texture2D == null) {
 			EditorGUILayout.HelpBox ("You have not selected a texture 2D yet.", MessageType.Warning);
@@ -34,6 +41,14 @@ public class TileMapEditor : Editor
 			EditorGUILayout.LabelField ("Grid Size In Units:", map.gridSize.x + "x" + map.gridSize.y);
 			EditorGUILayout.LabelField ("Pixels To Units:", map.pixelsToUnits.ToString ());
 			UpdateBrush (map.currentTileBrush);
+
+            if(GUILayout.Button("Clear Tiles"))
+            {
+                if(EditorUtility.DisplayDialog("Clear the map's tiles?", "Are you sure?", "Clear", "Do not clear"))
+                {
+                    ClearMap();
+                }
+            }
 		}
 
 		EditorGUILayout.EndVertical ();
@@ -69,11 +84,15 @@ public class TileMapEditor : Editor
 			UpdateHitPosition ();
 			MoveBrush ();
 
-			if (map.texture2D != null && mouseOnMap) {
-				Event current = Event.current;
-				if (current.shift) {
-					Draw ();
-				}
+            if (map.texture2D != null && mouseOnMap) {
+                Event current = Event.current;
+                if (current.shift) {
+                    Draw();
+                }
+                else if (current.alt)
+                {
+                    RemoveTile();
+                }
 			}
 		}
 	}
@@ -103,6 +122,7 @@ public class TileMapEditor : Editor
 
 			brush = go.AddComponent<TileBrush> ();
 			brush.renderer2D = go.AddComponent<SpriteRenderer> ();
+            brush.renderer2D.sortingOrder = 1000;
 
 			var pixelsToUnits = map.pixelsToUnits;
 			brush.brushSize = new Vector2 (sprite.textureRect.width / pixelsToUnits,
@@ -185,5 +205,25 @@ public class TileMapEditor : Editor
 
 		tile.GetComponent<SpriteRenderer> ().sprite = brush.renderer2D.sprite;
 	}
+
+    void RemoveTile()
+    {
+        var id = brush.tileID.ToString();
+        GameObject tile = GameObject.Find(map.name + "/Tiles/tiles_" + id);
+        if(tile != null)
+        {
+            DestroyImmediate(tile);
+        }
+    }
+    
+    void ClearMap()
+    {
+        for(var i = 0; i < map.tiles.transform.childCount; i++)
+        {
+            Transform t = map.tiles.transform.GetChild(i);
+            DestroyImmediate(t.gameObject);
+            i--;
+        }
+    }
 
 }
